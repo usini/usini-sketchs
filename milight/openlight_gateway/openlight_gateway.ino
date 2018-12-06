@@ -11,20 +11,15 @@
 #include "PL1167_nRF24.h"
 #include "MiLightRadio.h"
 
-
-//Radio
-#define CE_PIN D2
-#define CSN_PIN D8
-
 RF24 radio(CE_PIN, CSN_PIN);
 PL1167_nRF24 prf(radio);
 MiLightRadio mlr(prf);
 int sequence = 0x01;
 
+bool onPressed = false;
+bool offPressed = false;
 //Buttons pinOut
-//const int OnPin = 2;
-//const int OffPin = 3;
-const int repeat = 10;
+
 
 //Serial string buffer
 String readString;
@@ -66,8 +61,15 @@ void serialManager() {
 void setup()
 {
   Serial.begin(BAUDRATE);
-//  pinMode(OnPin, INPUT_PULLUP);
-//  pinMode(OffPin, INPUT_PULLUP);
+  if(BUTTONS){
+    if(PULLUP){
+      pinMode(OnPin, INPUT_PULLUP);
+      pinMode(OffPin, INPUT_PULLUP);
+    } else {
+      pinMode(OnPin, INPUT);
+      pinMode(OffPin, INPUT);
+    }
+  }
   mlr.begin();
 }
 
@@ -84,17 +86,25 @@ void loop()
   //We clean the serial buffer
   readString = "";
 
-/*
-  //If ON button pressed send on
-  if (!digitalRead(OnPin)) {
-    radioSend(on);
+  if(BUTTONS){
+    if(PULLUP){
+      onPressed = !digitalRead(OnPin);
+      offPressed = !digitalRead(OffPin);
+    } else {
+      onPressed = digitalRead(OnPin);
+      offPressed = digitalRead(OffPin);
+    }
+    //If ON button pressed send on
+    if (onPressed) {
+      radioSend(on);
+    }
+  
+    //If OFF button pressed send off
+    if (offPressed) {
+      radioSend(off);
+    }
   }
 
-  //If OFF button pressed send off
-  if (!digitalRead(OffPin)) {
-    radioSend(off);
-  }
-*/
 }
 
 
@@ -150,7 +160,7 @@ void radioSend(int code [7] ) {
   //Send message
   for (int i = 0; i < repeat; i++) {
     mlr.write(outgoingPacket_tmp, sizeof(outgoingPacket_tmp));
-    delay(20);
+    //delay(60);
     sequence++;
     outgoingPacket_tmp[6] = (uint8_t)sequence;
   }
