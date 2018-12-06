@@ -160,7 +160,6 @@ void radioSend(int code [7] ) {
   //Send message
   for (int i = 0; i < repeat; i++) {
     mlr.write(outgoingPacket_tmp, sizeof(outgoingPacket_tmp));
-    //delay(60);
     sequence++;
     outgoingPacket_tmp[6] = (uint8_t)sequence;
   }
